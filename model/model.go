@@ -61,6 +61,7 @@ type Weico struct {
 	User      User       `gorm:"-" json:"user"`
 	Like      int        `json:"like"`
 	PublishTS int        `json:"publish_ts"`
+	CateID    int        `gorm:"index" json:"cate_id"`
 }
 
 type WeicoPic struct {
@@ -84,4 +85,9 @@ type WeicoComment struct {
 	FromUser   User   `gorm:"-" json:"from_user"`
 	ToUser     User   `gorm:"-" json:"to_user"`
 	TS         int    `json:"ts"`
+}
+
+type WeicoCate struct {
+	BaseModel
+	Content string `json:"content"`
 }

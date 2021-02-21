@@ -15,12 +15,13 @@ type weicoService struct {
 var WeicoService = weicoService{}
 
 // Publish 发布
-func (ws weicoService) Publish(ctx *gin.Context, userID int, content string, urls []string) (err error) {
+func (ws weicoService) Publish(ctx *gin.Context, userID int, content string, urls []string, cateID int) (err error) {
 	now := time.Now().Unix()
 	weico := model.Weico{
 		Content:   content,
 		UserID:    userID,
 		PublishTS: int(now),
+		CateID:    cateID,
 	}
 	weicoRepository := repository.NewWeicoRepository(ctx)
 	err = weicoRepository.Create(&weico)
@@ -60,9 +61,9 @@ func (ws weicoService) Find(ctx *gin.Context, weico *model.Weico) (err error) {
 }
 
 // FindList 动态列表
-func (ws weicoService) FindList(ctx *gin.Context, weicos *[]model.Weico) (tmp []model.Weico, err error) {
+func (ws weicoService) FindList(ctx *gin.Context, weicos *[]model.Weico, cateID int) (tmp []model.Weico, err error) {
 	weicoRepository := repository.NewWeicoRepository(ctx)
-	err = weicoRepository.FindList(weicos)
+	err = weicoRepository.FindList(weicos, cateID)
 	if err != nil {
 		return
 	}
@@ -172,4 +173,10 @@ func (ws weicoService) CommentList(ctx *gin.Context, weicoID int) (comments []mo
 func (ws weicoService) DeleteComment(ctx *gin.Context, commentID int) (err error) {
 	weicoCommentRepository := repository.NewWeicoCommentRepository(ctx)
 	return weicoCommentRepository.Delete(commentID)
+}
+
+// WeicoCateList 动态分类
+func (ws weicoService) WeicoCateList(ctx *gin.Context) (weicoCates []model.WeicoCate, err error) {
+	weicoCateRepository := repository.NewWeicoCateRepository(ctx)
+	return weicoCateRepository.FindList()
 }

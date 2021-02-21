@@ -5,9 +5,10 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"pineapple-go/core/gconv"
 	"strings"
 	"time"
+
+	"github.com/spf13/cast"
 )
 
 type Param map[string]interface{}
@@ -27,7 +28,7 @@ func (param Param) Encode() string {
 		}
 		buf.WriteString(k)
 		buf.WriteByte('=')
-		buf.WriteString(gconv.String(v))
+		buf.WriteString(cast.ToString(v))
 	}
 	return buf.String()
 }

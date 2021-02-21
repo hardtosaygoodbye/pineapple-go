@@ -8,12 +8,12 @@ import (
 	"pineapple-go/core/req"
 	"pineapple-go/model"
 	"pineapple-go/util"
-	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
+	"github.com/spf13/cast"
 )
 
 type suesService struct {
@@ -25,15 +25,20 @@ var proxy req.Proxy = "http://118.25.210.52:8080"
 
 // GetCaptchaAndCookie 获取cookie
 func (ss suesService) GetCaptchaAndCookie() (captcha string, cookie string, err error) {
-	resp, err := req.Get("http://jxxt.sues.edu.cn/eams/captcha/image.action", proxy)
+	resp, err := req.Get("http://jxxt.sues.edu.cn/eams/captcha/image.action",
+		req.Header{
+			"Cookie": "test=20111133",
+		},
+		proxy)
 	if err != nil {
 		return
 	}
 	// 获取cookie
-	cookies := resp.Header["Set-Cookie"]
-	JSESSIONID := strings.Split(cookies[0], ";")[0]
-	test := strings.Split(cookies[1], ";")[0]
-	cookie = JSESSIONID + ";popped='';" + test
+	cookies := resp.Header["Set-Cookie"][0]
+	// JSESSIONID=7981DC8C481E6730255A1D5013C68E2C; Path=/eams; HttpOnly
+	// JSESSIONID=7981DC8C481E6730255A1D5013C68E2C; test=20111133
+	JSESSIONID := strings.Split(cookies, ";")[0]
+	cookie = JSESSIONID + "; test=20111133"
 	fileName := uuid.New().String()
 	util.SaveDataToFile(resp.Data, fileName)
 	defer os.Remove(fileName)
@@ -126,7 +131,7 @@ func (ss suesService) GetCourseTable(cookie, stdID string) (courses []model.Cour
 				course.Week = courseStrArr[13]
 			} else if len(line) < 30 && len(line) > 10 {
 				// 星期和节数
-				course.Index, _ = strconv.Atoi(string(line[8]))
+				course.Index = cast.ToInt(string(line[8]))
 				if course.Week != "" {
 					course.Time = course.Time + ","
 				}

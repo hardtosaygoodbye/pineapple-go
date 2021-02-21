@@ -78,6 +78,7 @@ func AutoMigrate() {
 		&model.WeicoPic{},
 		&model.WeicoLike{},
 		&model.WeicoComment{},
+		&model.WeicoCate{},
 	)
 	log.GormLogger.Info("migrate end...")
 	log.InitLogger.Info("migrate table successful")

@@ -1,17 +1,17 @@
 package util
 
 import (
-	"strconv"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/spf13/cast"
 )
 
 // CreateToken 创建Token
 func CreateToken(uid uint, secret string) (string, error) {
 
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"uid": strconv.Itoa(int(uid)),
+		"uid": cast.ToString(uid),
 		"exp": time.Now().Add(time.Hour * 24 * 9999).Unix(),
 	})
 	token, err := at.SignedString([]byte(secret))

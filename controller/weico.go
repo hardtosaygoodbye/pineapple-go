@@ -3,10 +3,10 @@ package controller
 import (
 	"pineapple-go/model"
 	"pineapple-go/service"
-	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/cast"
 )
 
 // PublishWeico 发布动态
@@ -18,7 +18,8 @@ func PublishWeico(ctx *gin.Context) {
 	if len(pics) == 0 {
 		picArr = make([]string, 0)
 	}
-	err := service.WeicoService.Publish(ctx, uid, content, picArr)
+	cateID := cast.ToInt(ctx.PostForm("cate_id"))
+	err := service.WeicoService.Publish(ctx, uid, content, picArr, cateID)
 	if err != nil {
 		ErrorWithMsg(ctx, err.Error())
 		return
@@ -28,8 +29,9 @@ func PublishWeico(ctx *gin.Context) {
 
 // WeicoList 动态列表
 func WeicoList(ctx *gin.Context) {
+	cateID := cast.ToInt(ctx.PostForm("cate_id"))
 	var weicos []model.Weico
-	weicos, err := service.WeicoService.FindList(ctx, &weicos)
+	weicos, err := service.WeicoService.FindList(ctx, &weicos, cateID)
 	if err != nil {
 		ErrorWithMsg(ctx, err.Error())
 		return
@@ -42,14 +44,13 @@ func WeicoList(ctx *gin.Context) {
 // DeleteWeico 删除动态
 func DeleteWeico(ctx *gin.Context) {
 	uid := ctx.GetInt("uid")
-	weicoIDStr := ctx.PostForm("weico_id")
-	weicoID, err := strconv.Atoi(weicoIDStr)
+	weicoID := cast.ToInt(ctx.PostForm("weico_id"))
 	weico := model.Weico{
 		BaseModel: model.BaseModel{
 			ID: uint(weicoID),
 		},
 	}
-	err = service.WeicoService.Find(ctx, &weico)
+	err := service.WeicoService.Find(ctx, &weico)
 	if err != nil {
 		ErrorWithMsg(ctx, err.Error())
 		return
@@ -72,11 +73,10 @@ func DeleteWeico(ctx *gin.Context) {
 
 // LikeWeico 点赞动态
 func LikeWeico(ctx *gin.Context) {
-	likeStr := ctx.PostForm("like")
-	weicoIDStr := ctx.PostForm("weico_id")
-	weicoID, err := strconv.Atoi(weicoIDStr)
+	like := cast.ToInt(ctx.PostForm("like"))
+	weicoID := cast.ToInt(ctx.PostForm("weico_id"))
 	uid := ctx.GetInt("uid")
-	like, err := strconv.Atoi(likeStr)
+	var err error
 	if like == 1 {
 		err = service.WeicoService.Like(ctx, uid, weicoID)
 	} else if like == 0 {
@@ -93,28 +93,15 @@ func LikeWeico(ctx *gin.Context) {
 func CommentWeico(ctx *gin.Context) {
 	content := ctx.PostForm("content")
 	uid := ctx.GetInt("uid")
-	toUserIDStr := ctx.PostForm("to_user_id")
-	weicoIDStr := ctx.PostForm("weico_id")
-	if len(toUserIDStr) == 0 {
-		toUserIDStr = "0"
-	}
-	toUserID, err := strconv.Atoi(toUserIDStr)
-	if err != nil {
-		ErrorWithMsg(ctx, err.Error())
-		return
-	}
-	weicoID, err := strconv.Atoi(weicoIDStr)
-	if err != nil {
-		ErrorWithMsg(ctx, err.Error())
-		return
-	}
+	toUserID := cast.ToInt(ctx.PostForm("to_user_id"))
+	weicoID := cast.ToInt(ctx.PostForm("weico_id"))
 	comment := model.WeicoComment{
 		Content:    content,
 		FromUserID: uid,
 		ToUserID:   toUserID,
 		WeicoID:    weicoID,
 	}
-	err = service.WeicoService.AddComment(ctx, &comment)
+	err := service.WeicoService.AddComment(ctx, &comment)
 	if err != nil {
 		ErrorWithMsg(ctx, err.Error())
 		return
@@ -124,13 +111,8 @@ func CommentWeico(ctx *gin.Context) {
 
 // DeleteComment 删除评论
 func DeleteComment(ctx *gin.Context) {
-	commentIDStr := ctx.PostForm("comment_id")
-	commentID, err := strconv.Atoi(commentIDStr)
-	if err != nil {
-		ErrorWithMsg(ctx, err.Error())
-		return
-	}
-	err = service.WeicoService.DeleteComment(ctx, commentID)
+	commentID := cast.ToInt(ctx.PostForm("comment_id"))
+	err := service.WeicoService.DeleteComment(ctx, commentID)
 	if err != nil {
 		ErrorWithMsg(ctx, err.Error())
 		return
@@ -140,12 +122,7 @@ func DeleteComment(ctx *gin.Context) {
 
 // CommentList 评论列表
 func CommentList(ctx *gin.Context) {
-	weicoIDStr := ctx.PostForm("weico_id")
-	weicoID, err := strconv.Atoi(weicoIDStr)
-	if err != nil {
-		ErrorWithMsg(ctx, err.Error())
-		return
-	}
+	weicoID := cast.ToInt(ctx.PostForm("weico_id"))
 	comments, err := service.WeicoService.CommentList(ctx, weicoID)
 	if err != nil {
 		ErrorWithMsg(ctx, err.Error())
@@ -153,5 +130,22 @@ func CommentList(ctx *gin.Context) {
 	}
 	Success(ctx, gin.H{
 		"comments": comments,
+	})
+}
+
+// WeicoCateList 动态分类
+func WeicoCateList(ctx *gin.Context) {
+	weicoCates, err := service.WeicoService.WeicoCateList(ctx)
+	if err != nil {
+		ErrorWithMsg(ctx, err.Error())
+		return
+	}
+	var tmp []model.WeicoCate
+	tmp = append(tmp, model.WeicoCate{
+		Content: "全部",
+	})
+	tmp = append(tmp, weicoCates...)
+	Success(ctx, gin.H{
+		"cates": tmp,
 	})
 }

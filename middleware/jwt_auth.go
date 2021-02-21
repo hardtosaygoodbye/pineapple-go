@@ -7,9 +7,9 @@ import (
 	"pineapple-go/core/log"
 	"pineapple-go/core/redis"
 	"pineapple-go/util"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/cast"
 )
 
 func JWTAuthRequired(ctx *gin.Context) {
@@ -34,6 +34,6 @@ func JWTAuthRequired(ctx *gin.Context) {
 		ctx.Abort()
 		return
 	}
-	tmp, err := strconv.Atoi(uid)
+	tmp := cast.ToInt(uid)
 	ctx.Set("uid", tmp)
 }

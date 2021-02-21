@@ -37,6 +37,7 @@ func LoadRoutes(router *gin.Engine) {
 		v1.POST("/weico/add_comment", controller.CommentWeico)
 		v1.POST("/weico/comment_list", controller.CommentList)
 		v1.POST("/weico/delete_comment", controller.DeleteComment)
+		v1.POST("/weico/cate_list", controller.WeicoCateList)
 		v1.POST("/qiniu/token", controller.QiniuToken)
 		// v1.GET("/home", controller.Index)
 		// v1.GET("/testredis", controller.TestRedis)
