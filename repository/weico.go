@@ -20,11 +20,11 @@ func (wr *weicoRepository) Create(weico *model.Weico) error {
 	return wr.db.Create(weico).Error
 }
 
-func (wr *weicoRepository) FindList(weicos *[]model.Weico, cateID int) error {
+func (wr *weicoRepository) FindList(weicos *[]model.Weico, cateID int, ts int) error {
 	if cateID != 0 {
-		return wr.db.Where("cate_id = ?", cateID).Order("publish_ts desc").Find(weicos).Error
+		return wr.db.Where("cate_id = ?", cateID).Order("ts desc").Find(weicos).Error
 	} else {
-		return wr.db.Order("publish_ts desc").Find(weicos).Error
+		return wr.db.Where("ts < ?", ts).Order("ts desc").Limit(10).Find(weicos).Error
 	}
 }
 

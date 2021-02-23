@@ -1,7 +1,6 @@
 package router
 
 import (
-	"fmt"
 	"pineapple-go/controller"
 	"pineapple-go/middleware"
 
@@ -47,6 +46,4 @@ func LoadRoutes(router *gin.Engine) {
 		// v1.GET("/bind", controller.TestBind)
 		// v1.GET("/userinfo", controller.UserInfo)
 	}
-
-	fmt.Println("load routes successful.")
 }

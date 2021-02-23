@@ -55,13 +55,15 @@ type AuthCode struct {
 
 type Weico struct {
 	BaseModel
-	Content   string     `json:"content"`
-	UserID    int        `gorm:"index" json:"-"`
-	Pics      []WeicoPic `json:"pics"`
-	User      User       `gorm:"-" json:"user"`
-	Like      int        `json:"like"`
-	PublishTS int        `json:"publish_ts"`
-	CateID    int        `gorm:"index" json:"cate_id"`
+	Content    string     `json:"content"`
+	UserID     int        `gorm:"index" json:"-"`
+	Pics       []WeicoPic `json:"pics"`
+	User       User       `gorm:"-" json:"user"`
+	LikeNum    int        `json:"like_num"`
+	CommentNum int        `json:"comment_num"`
+	TS         int        `json:"ts"`
+	CateID     int        `gorm:"index" json:"cate_id"`
+	IsLike     int        `gorm:"-" json:"is_like"`
 }
 
 type WeicoPic struct {

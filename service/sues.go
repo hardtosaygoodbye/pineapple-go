@@ -2,7 +2,6 @@ package service
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"os"
 	"pineapple-go/core/req"
@@ -65,7 +64,6 @@ func (ss suesService) LoginJxxt(stdno, password, captcha, cookie string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(string(resp.Data))
 	if strings.Contains(string(resp.Data), "Wrong Catcha String") {
 		return errors.New("验证码错误")
 	} else if strings.Contains(string(resp.Data), "Error Password") {
@@ -87,7 +85,6 @@ func (ss suesService) GetStdID(cookie string) (stdID string, err error) {
 	if err != nil {
 		return "", nil
 	}
-	fmt.Println(string(resp.Data))
 	stdID, err = util.SplitContent(string(resp.Data), "javascript:getCourseTable('std','", "',event)")
 	return
 }
@@ -174,7 +171,6 @@ func (ss suesService) ClientRequest(url string) []byte {
 		})
 		_, msg, err := tmpConn.ReadMessage()
 		if err != nil {
-			fmt.Println(err.Error())
 			return nil
 		}
 		return msg

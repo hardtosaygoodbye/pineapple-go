@@ -18,14 +18,17 @@ var WeicoService = weicoService{}
 func (ws weicoService) Publish(ctx *gin.Context, userID int, content string, urls []string, cateID int) (err error) {
 	now := time.Now().Unix()
 	weico := model.Weico{
-		Content:   content,
-		UserID:    userID,
-		PublishTS: int(now),
-		CateID:    cateID,
+		Content: content,
+		UserID:  userID,
+		TS:      int(now),
+		CateID:  cateID,
 	}
 	weicoRepository := repository.NewWeicoRepository(ctx)
 	err = weicoRepository.Create(&weico)
 	if err != nil {
+		return
+	}
+	if len(urls) == 0 {
 		return
 	}
 	var weicoPics []model.WeicoPic
@@ -61,15 +64,15 @@ func (ws weicoService) Find(ctx *gin.Context, weico *model.Weico) (err error) {
 }
 
 // FindList 动态列表
-func (ws weicoService) FindList(ctx *gin.Context, weicos *[]model.Weico, cateID int) (tmp []model.Weico, err error) {
+func (ws weicoService) FindList(ctx *gin.Context, weicos *[]model.Weico, cateID int, ts int, userID int) (tmp []model.Weico, err error) {
 	weicoRepository := repository.NewWeicoRepository(ctx)
-	err = weicoRepository.FindList(weicos, cateID)
+	err = weicoRepository.FindList(weicos, cateID, ts)
 	if err != nil {
 		return
 	}
 	weicoPicRepository := repository.NewWeicoPicRepository(ctx)
-
 	for _, weico := range *weicos {
+		weico.IsLike, err = ws.IsLike(ctx, userID, int(weico.BaseModel.ID))
 		err = weicoPicRepository.FindWithWeicoID(&weico.Pics, int(weico.BaseModel.ID))
 		if err != nil {
 			return
@@ -80,6 +83,21 @@ func (ws weicoService) FindList(ctx *gin.Context, weicos *[]model.Weico, cateID 
 			return
 		}
 		tmp = append(tmp, weico)
+	}
+	return
+}
+
+func (ws weicoService) IsLike(ctx *gin.Context, userID int, weicoID int) (isLike int, err error) {
+	weicoLikeRepository := repository.NewWeicoLikeRepository(ctx)
+	var weicoLike model.WeicoLike
+	err = weicoLikeRepository.Find(&weicoLike, weicoID, userID)
+	if err != nil {
+		return
+	}
+	if weicoLike.BaseModel.ID != 0 {
+		isLike = 1
+	} else {
+		isLike = 0
 	}
 	return
 }
@@ -109,7 +127,7 @@ func (ws weicoService) Like(ctx *gin.Context, userID int, weicoID int) (err erro
 	if err != nil {
 		return
 	}
-	weico.Like++
+	weico.LikeNum++
 	err = weicoRepository.Update(&weico)
 	if err != nil {
 		return
@@ -132,11 +150,12 @@ func (ws weicoService) CancelLike(ctx *gin.Context, userID int, weicoID int) (er
 	}
 	weicoRepository := repository.NewWeicoRepository(ctx)
 	var weico model.Weico
+	weico.BaseModel.ID = uint(weicoID)
 	err = weicoRepository.Find(&weico)
 	if err != nil {
 		return
 	}
-	weico.Like--
+	weico.LikeNum--
 	err = weicoRepository.Update(&weico)
 	if err != nil {
 		return
@@ -150,6 +169,16 @@ func (ws weicoService) AddComment(ctx *gin.Context, comment *model.WeicoComment)
 	now := time.Now().Unix()
 	comment.TS = int(now)
 	err = weicoCommentRepository.Create(comment)
+
+	weicoRepository := repository.NewWeicoRepository(ctx)
+	var weico model.Weico
+	weico.BaseModel.ID = uint(comment.WeicoID)
+	err = weicoRepository.Find(&weico)
+	if err != nil {
+		return
+	}
+	weico.CommentNum++
+	err = weicoRepository.Update(&weico)
 	return
 }
 
@@ -170,9 +199,20 @@ func (ws weicoService) CommentList(ctx *gin.Context, weicoID int) (comments []mo
 }
 
 // DeleteComment 删除评论
-func (ws weicoService) DeleteComment(ctx *gin.Context, commentID int) (err error) {
+func (ws weicoService) DeleteComment(ctx *gin.Context, commentID int, weicoID int) (err error) {
 	weicoCommentRepository := repository.NewWeicoCommentRepository(ctx)
-	return weicoCommentRepository.Delete(commentID)
+	err = weicoCommentRepository.Delete(commentID)
+
+	weicoRepository := repository.NewWeicoRepository(ctx)
+	var weico model.Weico
+	weico.BaseModel.ID = uint(weicoID)
+	err = weicoRepository.Find(&weico)
+	if err != nil {
+		return
+	}
+	weico.CommentNum--
+	err = weicoRepository.Update(&weico)
+	return
 }
 
 // WeicoCateList 动态分类

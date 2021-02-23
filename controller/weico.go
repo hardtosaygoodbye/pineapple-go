@@ -29,9 +29,11 @@ func PublishWeico(ctx *gin.Context) {
 
 // WeicoList 动态列表
 func WeicoList(ctx *gin.Context) {
+	uid := ctx.GetInt("uid")
 	cateID := cast.ToInt(ctx.PostForm("cate_id"))
+	ts := cast.ToInt(ctx.PostForm("ts"))
 	var weicos []model.Weico
-	weicos, err := service.WeicoService.FindList(ctx, &weicos, cateID)
+	weicos, err := service.WeicoService.FindList(ctx, &weicos, cateID, ts, uid)
 	if err != nil {
 		ErrorWithMsg(ctx, err.Error())
 		return
@@ -112,7 +114,8 @@ func CommentWeico(ctx *gin.Context) {
 // DeleteComment 删除评论
 func DeleteComment(ctx *gin.Context) {
 	commentID := cast.ToInt(ctx.PostForm("comment_id"))
-	err := service.WeicoService.DeleteComment(ctx, commentID)
+	weicoID := cast.ToInt(ctx.PostForm("weico_id"))
+	err := service.WeicoService.DeleteComment(ctx, commentID, weicoID)
 	if err != nil {
 		ErrorWithMsg(ctx, err.Error())
 		return
