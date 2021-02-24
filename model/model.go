@@ -39,7 +39,7 @@ type User struct {
 	WxOpenID string `json:"-"`
 	Phone    string `json:"-"`
 	Avatar   string `json:"avatar"`
-	Gender   string `json:"-"`
+	Gender   string `json:"gender"`
 	Language string `json:"-"`
 	NickName string `json:"nick_name"`
 	Country  string `json:"-"`
